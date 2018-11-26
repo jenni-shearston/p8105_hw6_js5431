@@ -55,11 +55,19 @@ baltimore_glm =
   filter(city_state == "Baltimore, MD") %>% 
   glm(solved ~ notwhite_victim + victim_age + victim_sex, data = ., family = binomial()) %>%
   broom::tidy(conf.int = TRUE) %>% 
-  mutate(OR = exp(estimate)) %>%
+  mutate(OR = exp(estimate),
+         conf.low = exp(conf.low),
+         conf.high = exp(conf.high)) %>%
   select(term, OR, conf.low, conf.high) 
 ```
 
 #### GLM for All Locations
+
+\`\`\`{\#r mapped glm}
+
+hom\_models = hom\_data %&gt;% group\_by(city\_state) %&gt;% nest() %&gt;% mutate(glm\_results = map(data, ~glm(solved ~ notwhite\_victim + victim\_age + victim\_sex, data = ., family = binomial())), glm\_tidy = map(glm\_results, ~broom::tidy, conf.int = TRUE)) %&gt;% select(-data, -glm\_results) %&gt;% unnest() %&gt;% select(city\_state, term, estimate, conf.low, conf.high)
+
+\`\`\`
 
 Problem 2
 ---------
