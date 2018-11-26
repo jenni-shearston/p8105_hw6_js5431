@@ -49,6 +49,16 @@ hom_data = read_csv("homicide-data.csv", na = c("", "NA", "Unknown")) %>%
 
 #### Baltimore, MD
 
+``` r
+baltimore_glm = 
+  hom_data %>% 
+  filter(city_state == "Baltimore, MD") %>% 
+  glm(solved ~ notwhite_victim + victim_age + victim_sex, data = ., family = binomial()) %>%
+  broom::tidy(conf.int = TRUE) %>% 
+  mutate(OR = exp(estimate)) %>%
+  select(term, OR, conf.low, conf.high) 
+```
+
 #### GLM for All Locations
 
 Problem 2
