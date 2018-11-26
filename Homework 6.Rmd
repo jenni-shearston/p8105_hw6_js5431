@@ -1,0 +1,44 @@
+---
+title: "Homework 6"
+author: "J Shearston"
+date: "November 26, 2018"
+output: 
+  github_document:
+    toc: true
+---
+
+
+```{r setup, include=FALSE}
+
+library(tidyverse)
+
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
+
+theme_set(theme_bw() + theme(legend.position = "bottom"))
+
+```
+
+
+## Problem 1: Washington Post Homicide Data
+
+#### Loading and Tidying the Data 
+
+```{r load and tidy homicide data}
+
+hom_data = read_csv("homicide-data.csv") %>%
+  mutate(city_state = str_c(city, ", ", state),
+         city_state = as_factor(city_state),
+         unsolved = str_detect(disposition, "Open/No arrest"),
+         unsolved = ifelse(unsolved == TRUE, "1", "0"))
+
+#filter(city_state != "Dallas, TX" | city_state != "Phoenix, AZ" | city_state != "Kansas City, MO" | city_state != "Tulsa, AL")
+
+
+```
+
+
+## Problem 2
