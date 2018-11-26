@@ -8,27 +8,15 @@ output:
 ---
 
 
-```{r setup, include=FALSE}
 
-library(tidyverse)
-
-knitr::opts_chunk$set(
-  fig.width = 6,
-  fig.asp = .6,
-  out.width = "90%"
-)
-
-theme_set(theme_bw() + theme(legend.position = "bottom"))
-
-```
 
 
 ## Problem 1: Washington Post Homicide Data
 
 #### Loading and Tidying the Data 
 
-```{r load and tidy homicide data}
 
+```r
 hom_data = read_csv("homicide-data.csv", na = c("", "NA", "Unknown")) %>%
   mutate(city_state = str_c(city, ", ", state),
          solved = case_when(
@@ -43,25 +31,33 @@ hom_data = read_csv("homicide-data.csv", na = c("", "NA", "Unknown")) %>%
            victim_race == "Asian" ~ 1,
            victim_race == "NA" ~ 1)) %>% 
   filter(!city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO", "Tulsa, AL"))
+```
 
+```
+## Parsed with column specification:
+## cols(
+##   uid = col_character(),
+##   reported_date = col_integer(),
+##   victim_last = col_character(),
+##   victim_first = col_character(),
+##   victim_race = col_character(),
+##   victim_age = col_integer(),
+##   victim_sex = col_character(),
+##   city = col_character(),
+##   state = col_character(),
+##   lat = col_double(),
+##   lon = col_double(),
+##   disposition = col_character()
+## )
 ```
 
 #### Baltimore, MD
 
-```{r glm for Baltimore}
 
-
-
-```
 
 #### GLM for All Locations
 
-```{r mapped glm}
 
-
-
-
-```
 
 
 ## Problem 2
