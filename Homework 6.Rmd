@@ -27,7 +27,7 @@ theme_set(theme_bw() + theme(legend.position = "bottom"))
 
 #### Loading and Tidying the Data 
 
-```{r load and tidy homicide data}
+```{r load and tidy homicide data, message = FALSE}
 
 hom_data = read_csv("homicide-data.csv", na = c("", "NA", "Unknown")) %>%
   mutate(city_state = str_c(city, ", ", state),
@@ -91,7 +91,21 @@ hom_models %>% knitr::kable()
 
 ```{r plot of ORs}
 
-
+hom_models %>% 
+  mutate(city_state = fct_reorder(city_state, OR),
+         Significant = case_when(
+           conf.high < 1 ~ 1,
+           conf.high > 1 ~ 0),
+         Significant = as.logical(Significant)) %>% 
+  ggplot(aes(x = city_state, y = OR, color = Significant)) +
+  geom_col() +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) +
+  geom_hline(yintercept = 1) +
+  labs(
+    title = "Figure 1. Odds of Homicide Resolution, Non-white vs White Race",
+    x = "Location",
+    y = "Adjusted OR") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 ```
 

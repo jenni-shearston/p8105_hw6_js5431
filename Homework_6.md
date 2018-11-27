@@ -32,22 +32,6 @@ hom_data = read_csv("homicide-data.csv", na = c("", "NA", "Unknown")) %>%
   filter(!city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO", "Tulsa, AL"))
 ```
 
-    ## Parsed with column specification:
-    ## cols(
-    ##   uid = col_character(),
-    ##   reported_date = col_integer(),
-    ##   victim_last = col_character(),
-    ##   victim_first = col_character(),
-    ##   victim_race = col_character(),
-    ##   victim_age = col_integer(),
-    ##   victim_sex = col_character(),
-    ##   city = col_character(),
-    ##   state = col_character(),
-    ##   lat = col_double(),
-    ##   lon = col_double(),
-    ##   disposition = col_character()
-    ## )
-
 #### Baltimore, MD
 
 ``` r
@@ -140,6 +124,26 @@ hom_models %>% knitr::kable()
 | Washington, DC     |  0.5138958|  0.2515724|  0.9967816|
 
 #### Plot of OR and CIs for Each Location
+
+``` r
+hom_models %>% 
+  mutate(city_state = fct_reorder(city_state, OR),
+         Significant = case_when(
+           conf.high < 1 ~ 1,
+           conf.high > 1 ~ 0),
+         Significant = as.logical(Significant)) %>% 
+  ggplot(aes(x = city_state, y = OR, color = Significant)) +
+  geom_col() +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) +
+  geom_hline(yintercept = 1) +
+  labs(
+    title = "Figure 1. Odds of Homicide Resolution, Non-white vs White Race",
+    x = "Location",
+    y = "Adjusted OR") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+<img src="Homework_6_files/figure-markdown_github/plot of ORs-1.png" width="90%" />
 
 Problem 2
 ---------
