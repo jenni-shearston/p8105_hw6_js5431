@@ -58,24 +58,40 @@ baltimore_glm =
   mutate(OR = exp(estimate),
          conf.low = exp(conf.low),
          conf.high = exp(conf.high)) %>%
+  filter(term == "notwhite_victim") %>% 
   select(term, OR, conf.low, conf.high) 
+
+baltimore_glm %>% knitr::kable()
 
 ```
 
 #### GLM for All Locations
 
-```{#r mapped glm}
+```{r mapped glm}
 
 hom_models = hom_data %>%
   group_by(city_state) %>% 
   nest() %>% 
-  mutate(glm_results = map(data, ~glm(solved ~ notwhite_victim + victim_age + victim_sex, 
-                               data = ., 
-                               family = binomial())),
-         glm_tidy = map(glm_results, ~broom::tidy, conf.int = TRUE)) %>%
-  select(-data, -glm_results) %>% 
+  mutate(glm_results = map(data, ~broom::tidy(
+    glm(solved ~ notwhite_victim + victim_age + victim_sex, data = ., family = binomial()),
+    conf.int = TRUE))) %>%
+  select(-data) %>% 
   unnest() %>% 
-  select(city_state, term, estimate, conf.low, conf.high)
+  mutate(OR = exp(estimate),
+         conf.low = exp(conf.low),
+         conf.high = exp(conf.high)) %>% 
+  filter(term == "notwhite_victim") %>% 
+  select(city_state, OR, conf.low, conf.high)
+  
+hom_models %>% knitr::kable()
+
+```
+
+#### Plot of OR and CIs for Each Location
+
+```{r plot of ORs}
+
+
 
 ```
 
