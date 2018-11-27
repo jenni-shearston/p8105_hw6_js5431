@@ -9,11 +9,16 @@ November 26, 2018
     -   [GLM for All Locations](#glm-for-all-locations)
     -   [Plot of OR and CIs for Each Location](#plot-of-or-and-cis-for-each-location)
 -   [Problem 2](#problem-2)
+    -   [Loading and Tidying the Data](#loading-and-tidying-the-data-1)
 
 Problem 1: Washington Post Homicide Data
 ----------------------------------------
 
+This problem involves determining the odds of homicide resolution by race (not white vs white), for each location in the dataset.
+
 #### Loading and Tidying the Data
+
+First, homicide data from the Washington Post was loaded into R and cleaned.
 
 ``` r
 hom_data = read_csv("homicide-data.csv", na = c("", "NA", "Unknown")) %>%
@@ -32,7 +37,11 @@ hom_data = read_csv("homicide-data.csv", na = c("", "NA", "Unknown")) %>%
   filter(!city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO", "Tulsa, AL"))
 ```
 
+Variables for homicide resolution and victim race were created, such that a homicide was considered solved if it had been "closed by arrest," but not solved if it had been "closed without arrest" or was still "open/no arrest". Non-white race was defined as Hispanic, Other, Black, Asian, or NA (missing). Four locations were removed from analysis because they did not report victim race (Dallas, Tx; Phoenix, AZ; Kansas City, MO) or were the result of data entry error (Tulsa, AL). The resulting dataset had 48507 rows and 15 columns.
+
 #### Baltimore, MD
+
+As a test case, a Generalized Linear Model (glm) was run for the city of Baltimore, MD, to determine the odds of a homicide case being solved for non-white victims, compared to white victims. Victim age and sex were included in the model as covariates.
 
 ``` r
 baltimore_glm = 
@@ -53,7 +62,11 @@ baltimore_glm %>% knitr::kable()
 |:-----------------|---------:|----------:|----------:|
 | notwhite\_victim |  0.440608|  0.3121625|  0.6196693|
 
+The table above shows an odds of 0.44 for non-white victims of having their homicide resolved, suggesting that non-white victims are significantly less likely to have their homicides resolved, compared to white victims.
+
 #### GLM for All Locations
+
+Next, GLM models were run for every location, to determine the odds of homicide resolution for non-white victims (compared to white victims) including victim age and sex as covariates. Results are shown in the table below.
 
 ``` r
 hom_models = hom_data %>%
@@ -125,6 +138,8 @@ hom_models %>% knitr::kable()
 
 #### Plot of OR and CIs for Each Location
 
+Finally, a plot of AORs and CIs was created to visualize how the odds of homicide resolution for non-white victims changes by city (Figure 1).
+
 ``` r
 hom_models %>% 
   mutate(city_state = fct_reorder(city_state, OR),
@@ -145,5 +160,11 @@ hom_models %>%
 
 <img src="Homework_6_files/figure-markdown_github/plot of ORs-1.png" width="90%" />
 
+As can be seen from Figure 1, for most cities, odds of homicide resolution for non-white victims was significantly less than for white victims. No cities had significantly higher AORs of homicide resolution for non-white victims, although several cities did show no significant difference between non-white and white victims.
+
 Problem 2
 ---------
+
+This problem involves...
+
+#### Loading and Tidying the Data
