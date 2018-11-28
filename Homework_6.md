@@ -241,7 +241,11 @@ birth_data %>%
   modelr::add_residuals(jas_m) %>% 
   modelr::add_predictions(jas_m) %>% 
   ggplot(aes(x = pred, y = resid)) +
-  geom_point()
+  geom_point() +
+  labs(
+    title = "Figure 2. Residual vs Predicted Plot for JAS Model",
+    x = "Predicted Values",
+    y = "Residuals")
 ```
 
 <img src="Homework_6_files/figure-markdown_github/JAS model-1.png" width="90%" />
@@ -249,6 +253,8 @@ birth_data %>%
 The residual vs predictor plot looks fairly acceptable, as points cluster around 0, are fairly symmetrically distributed, and don't form an obvious pattern.
 
 #### Model Comparison
+
+Finally, the JAS model was compared to two others: (1) birthweight predicted by length at birth and gestational age, and (2) birthweight predicted by head circumference, length at birth, baby sex, and interaction between all these terms. Cross validation was completed by splitting the birthweight dataset into 100 training and test dataframes, and the three models were compared using the root mean squared errors (RMSEs) of these runs.
 
 ``` r
 # Length model
@@ -284,6 +290,23 @@ cv_df =
   mutate(rmse_jas    = map2_dbl(jas_m, test, ~rmse(model = .x, data = .y)),
          rmse_length = map2_dbl(length_m, test, ~rmse(model = .x, data = .y)),
          rmse_head   = map2_dbl(head_m, test, ~rmse(model = .x, data = .y)))
+
+# Plot prediction error distribution
+cv_df %>% 
+  select(starts_with("rmse")) %>% 
+  gather(key = model, value = rmse) %>% 
+  mutate(model = str_replace(model, "rmse_", ""),
+         model = fct_inorder(model)) %>% 
+  ggplot(aes(x = model, y = rmse)) + 
+  geom_violin() +
+  labs(
+    title = "Figure 3. RMSEs for Three Models",
+    x = "Model",
+    y = "RMSE")
 ```
 
+<img src="Homework_6_files/figure-markdown_github/model comparison-1.png" width="90%" />
+
 #### Conclusion
+
+In Figure 3 above, the linear model that uses head circumference, length at birth, baby sex, and these variables' interactions to predict birthweight clearly has the lowest root mean squared error and is the "best" fit. However, this model is very difficult to interpret, and since its RMSE is not *that* much better than the model with baby length and gestational age, it is advisable to use the length model as it can be interpreted with much greater ease.
