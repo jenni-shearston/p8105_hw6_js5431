@@ -127,13 +127,77 @@ As can be seen from Figure 1, for most cities, odds of homicide resolution for n
 
 ## Problem 2
 
-This problem involves...
+This problem involves selecting an appropriate model to evaluate the effects of select factors on child birthweight.  
 
 #### Loading and Tidying the Data
 
-```{r load and tidy -- data, message = FALSE}
+First, the birthweight data was loaded into R and cleaned. 
 
+```{r load and tidy birthweight data, message = FALSE}
 
+birth_data = read_csv("birthweight.csv") %>% 
+  mutate(babysex = factor(babysex),
+         frace = factor(frace),
+         malform = factor(malform),
+         mrace = factor(mrace))
 
 ```
+
+The dataset contains `r nrow(birth_data)` rows and `r ncol(birth_data)` columns. In the code chunk below missing data was evaluated, and the dataset was found to be case-complete with no missing values.
+
+```{r check missing}
+
+skimr::skim(birth_data) %>% skimr::kable()
+
+```
+
+#### JAS Model
+
+Next, a model was developed to evaluate the effects of select characteristics and birthweight. Variables that have previously been identified as assoicated with birthweight were included in the model: avg. number of cigarettes smoked per day during pregnancy, mother's pre-pregnancy BMI, gestational age, family income, and mother's race. Some other variables that may be associated with birthweight, but which may be colinear with selected variables or caused by the outcome, were not included, such as: mother's height, pre-pregnancy weight, delivery weight, weight gain, baby's head circumference and baby's length. 
+
+```{r JAS model}
+
+# Model
+jas_m = 
+  lm(bwt ~ smoken + ppbmi + gaweeks + fincome + mrace, data = birth_data) 
+
+# Plot of model residuals against fitted values
+birth_data %>%  
+  modelr::add_residuals(jas_m) %>% 
+  modelr::add_predictions(jas_m) %>% 
+  ggplot(aes(x = pred, y = resid)) +
+  geom_point()
+  
+```
+
+The residual vs predictor plot looks fairly acceptable, as points cluster around 0, are fairly symmetrically distributed, and don't form an obvious pattern.
+
+#### Model Comparison
+
+```{r model comparison}
+
+# Length model
+length_m = lm(bwt ~ blength + gaweeks, data = birth_data)
+
+# Head circumference model
+head_m = lm(bwt ~ bhead*blength + bhead*babysex + blength*babysex + babysex*bhead*blength, data = birth_data)
+
+# Cross validation
+
+library(modelr)
+library(mgcv)
+
+cv_df = 
+  crossv_mc(birth_data, 100) %>% 
+  mutate(jas_m    = map(train, ~lm(bwt ~ smoken + ppbmi + gaweeks + fincome + mrace, data = .x)),
+         length_m = map(train, ~lm(bwt ~ blength + gaweeks, data = .x)),
+         head_m   = map(train, ~lm(bwt ~ bhead*blength + bhead*babysex + blength*babysex + 
+                                     babysex*bhead*blength, data = .x))) %>% 
+  mutate(rmse_jas    = map2_dbl(jas_m, test, ~rmse(model = .x, data = .y)),
+         rmse_length = map2_dbl(length_m, test, ~rmse(model = .x, data = .y)),
+         rmse_head   = map2_dbl(head_m, test, ~rmse(model = .x, data = .y)))
+
+```
+
+#### Conclusion
 

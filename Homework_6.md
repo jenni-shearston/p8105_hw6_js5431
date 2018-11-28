@@ -10,6 +10,9 @@ November 26, 2018
     -   [Plot of OR and CIs for Each Location](#plot-of-or-and-cis-for-each-location)
 -   [Problem 2](#problem-2)
     -   [Loading and Tidying the Data](#loading-and-tidying-the-data-1)
+    -   [JAS Model](#jas-model)
+    -   [Model Comparison](#model-comparison)
+    -   [Conclusion](#conclusion)
 
 Problem 1: Washington Post Homicide Data
 ----------------------------------------
@@ -165,6 +168,122 @@ As can be seen from Figure 1, for most cities, odds of homicide resolution for n
 Problem 2
 ---------
 
-This problem involves...
+This problem involves selecting an appropriate model to evaluate the effects of select factors on child birthweight.
 
 #### Loading and Tidying the Data
+
+First, the birthweight data was loaded into R and cleaned.
+
+``` r
+birth_data = read_csv("birthweight.csv") %>% 
+  mutate(babysex = factor(babysex),
+         frace = factor(frace),
+         malform = factor(malform),
+         mrace = factor(mrace))
+```
+
+The dataset contains 4342 rows and 20 columns. In the code chunk below missing data was evaluated, and the dataset was found to be case-complete with no missing values.
+
+``` r
+skimr::skim(birth_data) %>% skimr::kable()
+```
+
+    ## Skim summary statistics  
+    ##  n obs: 4342    
+    ##  n variables: 20    
+    ## 
+    ## Variable type: factor
+    ## 
+    ##  variable    missing    complete     n      n_unique              top_counts               ordered 
+    ## ----------  ---------  ----------  ------  ----------  ---------------------------------  ---------
+    ##  babysex        0         4342      4342       2            1: 2230, 2: 2112, NA: 0         FALSE  
+    ##   frace         0         4342      4342       5        1: 2123, 2: 1911, 4: 248, 3: 46     FALSE  
+    ##  malform        0         4342      4342       2             0: 4327, 1: 15, NA: 0          FALSE  
+    ##   mrace         0         4342      4342       4        1: 2147, 2: 1909, 4: 243, 3: 43     FALSE  
+    ## 
+    ## Variable type: integer
+    ## 
+    ##  variable    missing    complete     n       mean       sd      p0     p25      p50      p75     p100      hist   
+    ## ----------  ---------  ----------  ------  --------  --------  -----  ------  --------  ------  ------  ----------
+    ##   bhead         0         4342      4342    33.65      1.62     21      33       34       35      41     <U+2581><U+2581><U+2581><U+2581><U+2585><U+2587><U+2581><U+2581> 
+    ##  blength        0         4342      4342    49.75      2.72     20      48       50       51      63     <U+2581><U+2581><U+2581><U+2581><U+2581><U+2587><U+2581><U+2581> 
+    ##    bwt          0         4342      4342    3114.4    512.15    595    2807    3132.5    3459    4791    <U+2581><U+2581><U+2581><U+2583><U+2587><U+2587><U+2582><U+2581> 
+    ##   delwt         0         4342      4342    145.57    22.21     86     131      143      157     334     <U+2581><U+2587><U+2585><U+2581><U+2581><U+2581><U+2581><U+2581> 
+    ##  fincome        0         4342      4342    44.11     25.98      0      25       35       65      96     <U+2581><U+2582><U+2587><U+2582><U+2582><U+2582><U+2581><U+2583> 
+    ##  menarche       0         4342      4342    12.51      1.48      0      12       12       13      19     <U+2581><U+2581><U+2581><U+2581><U+2582><U+2587><U+2581><U+2581> 
+    ##  mheight        0         4342      4342    63.49      2.66     48      62       63       65      77     <U+2581><U+2581><U+2581><U+2585><U+2587><U+2582><U+2581><U+2581> 
+    ##   momage        0         4342      4342     20.3      3.88     12      18       20       22      44     <U+2582><U+2587><U+2585><U+2582><U+2581><U+2581><U+2581><U+2581> 
+    ##   parity        0         4342      4342    0.0023     0.1       0      0        0        0       6      <U+2587><U+2581><U+2581><U+2581><U+2581><U+2581><U+2581><U+2581> 
+    ##  pnumlbw        0         4342      4342      0         0        0      0        0        0       0      <U+2581><U+2581><U+2581><U+2587><U+2581><U+2581><U+2581><U+2581> 
+    ##  pnumsga        0         4342      4342      0         0        0      0        0        0       0      <U+2581><U+2581><U+2581><U+2587><U+2581><U+2581><U+2581><U+2581> 
+    ##    ppwt         0         4342      4342    123.49    20.16     70     110      120      134     287     <U+2581><U+2587><U+2586><U+2581><U+2581><U+2581><U+2581><U+2581> 
+    ##   wtgain        0         4342      4342    22.08     10.94     -46     15       22       28      89     <U+2581><U+2581><U+2581><U+2587><U+2587><U+2581><U+2581><U+2581> 
+    ## 
+    ## Variable type: numeric
+    ## 
+    ##  variable    missing    complete     n      mean      sd      p0       p25      p50      p75     p100      hist   
+    ## ----------  ---------  ----------  ------  -------  ------  -------  -------  -------  -------  ------  ----------
+    ##  gaweeks        0         4342      4342    39.43    3.15    17.7     38.3     39.9     41.1     51.3    <U+2581><U+2581><U+2581><U+2581><U+2583><U+2587><U+2581><U+2581> 
+    ##   ppbmi         0         4342      4342    21.57    3.18    13.07    19.53    21.03    22.91    46.1    <U+2581><U+2587><U+2585><U+2581><U+2581><U+2581><U+2581><U+2581> 
+    ##   smoken        0         4342      4342    4.15     7.41      0        0        0        5       60     <U+2587><U+2581><U+2581><U+2581><U+2581><U+2581><U+2581><U+2581>
+
+#### JAS Model
+
+Next, a model was developed to evaluate the effects of select characteristics and birthweight. Variables that have previously been identified as assoicated with birthweight were included in the model: avg. number of cigarettes smoked per day during pregnancy, mother's pre-pregnancy BMI, gestational age, family income, and mother's race. Some other variables that may be associated with birthweight, but which may be colinear with selected variables or caused by the outcome, were not included, such as: mother's height, pre-pregnancy weight, delivery weight, weight gain, baby's head circumference and baby's length.
+
+``` r
+# Model
+jas_m = 
+  lm(bwt ~ smoken + ppbmi + gaweeks + fincome + mrace, data = birth_data) 
+
+# Plot of model residuals against fitted values
+birth_data %>%  
+  modelr::add_residuals(jas_m) %>% 
+  modelr::add_predictions(jas_m) %>% 
+  ggplot(aes(x = pred, y = resid)) +
+  geom_point()
+```
+
+<img src="Homework_6_files/figure-markdown_github/JAS model-1.png" width="90%" />
+
+The residual vs predictor plot looks fairly acceptable, as points cluster around 0, are fairly symmetrically distributed, and don't form an obvious pattern.
+
+#### Model Comparison
+
+``` r
+# Length model
+length_m = lm(bwt ~ blength + gaweeks, data = birth_data)
+
+# Head circumference model
+head_m = lm(bwt ~ bhead*blength + bhead*babysex + blength*babysex + babysex*bhead*blength, data = birth_data)
+
+# Cross validation
+
+library(modelr)
+library(mgcv)
+```
+
+    ## Loading required package: nlme
+
+    ## 
+    ## Attaching package: 'nlme'
+
+    ## The following object is masked from 'package:dplyr':
+    ## 
+    ##     collapse
+
+    ## This is mgcv 1.8-24. For overview type 'help("mgcv-package")'.
+
+``` r
+cv_df = 
+  crossv_mc(birth_data, 100) %>% 
+  mutate(jas_m    = map(train, ~lm(bwt ~ smoken + ppbmi + gaweeks + fincome + mrace, data = .x)),
+         length_m = map(train, ~lm(bwt ~ blength + gaweeks, data = .x)),
+         head_m   = map(train, ~lm(bwt ~ bhead*blength + bhead*babysex + blength*babysex + 
+                                     babysex*bhead*blength, data = .x))) %>% 
+  mutate(rmse_jas    = map2_dbl(jas_m, test, ~rmse(model = .x, data = .y)),
+         rmse_length = map2_dbl(length_m, test, ~rmse(model = .x, data = .y)),
+         rmse_head   = map2_dbl(head_m, test, ~rmse(model = .x, data = .y)))
+```
+
+#### Conclusion
